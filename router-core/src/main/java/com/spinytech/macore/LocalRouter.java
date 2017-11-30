@@ -2,6 +2,7 @@ package com.spinytech.macore;
 
 import java.util.HashMap;
 
+import android.app.Application;
 import android.content.Context;
 import android.util.Log;
 
@@ -20,6 +21,9 @@ public class LocalRouter {
         mProviders = new HashMap<>();
     }
 
+    public Context getApplication(){
+        return mApplication;
+    }
     public static synchronized LocalRouter init(Context context) {
         if (sInstance == null) {
             sInstance = new LocalRouter(context);

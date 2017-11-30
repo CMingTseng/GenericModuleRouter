@@ -1,10 +1,14 @@
 package com.spinytech.macore;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Set;
-
+import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import android.util.Log;
 
 /**
  * Created by wanglei on 2016/12/27.
@@ -16,6 +20,7 @@ public class RouterRequest {
     private String provider;
     private String action;
     private HashMap data;
+    private String domain;
 
     public RouterRequest() {
         this.provider = "";
@@ -35,7 +40,51 @@ public class RouterRequest {
         return data;
     }
 
-
+    public RouterRequest url(String url) {
+        int questIndex = url.indexOf('?');
+        String[] urls = url.split("\\?");
+        if (urls.length != 1 && urls.length != 2) {
+            Log.e(TAG, "The url is illegal.");
+            return this;
+        }
+        String[] targets = urls[0].split("/");
+        if (targets.length == 2) {
+            //this.domain = targets[0];
+            this.provider = targets[0];
+            this.action = targets[1];
+        } else {
+            Log.e(TAG, "The url is illegal.");
+            return this;
+        }
+        //Add params
+        if (questIndex != -1) {
+            String queryString = urls[1];
+            if (queryString != null && queryString.length() > 0) {
+                int ampersandIndex, lastAmpersandIndex = 0;
+                String subStr, key, value;
+                String[] paramPair, values, newValues;
+                do {
+                    ampersandIndex = queryString.indexOf('&', lastAmpersandIndex) + 1;
+                    if (ampersandIndex > 0) {
+                        subStr = queryString.substring(lastAmpersandIndex, ampersandIndex - 1);
+                        lastAmpersandIndex = ampersandIndex;
+                    } else {
+                        subStr = queryString.substring(lastAmpersandIndex);
+                    }
+                    paramPair = subStr.split("=");
+                    key = paramPair[0];
+                    value = paramPair.length == 1 ? "" : paramPair[1];
+                    try {
+                        value = URLDecoder.decode(value, "UTF-8");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                    data.put(key, value);
+                } while (ampersandIndex > 0);
+            }
+        }
+        return this;
+    }
     @Override
     public String toString() {
         //Here remove Gson to save about 10ms.

@@ -2,6 +2,13 @@ package com.spinytech.webdemo;
 
 import static com.spinytech.webdemo.R.id.web;
 
+import java.util.HashMap;
+
+import com.spinytech.macore.LocalRouter;
+import com.spinytech.macore.RouterCallback;
+import com.spinytech.macore.RouterManager;
+import com.spinytech.macore.RouterRequest;
+
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -34,20 +41,20 @@ public class WebActivity extends AppCompatActivity {
         if (url.indexOf(YOUR_PROTOCOL) >= 0) {
             String command = url.substring(YOUR_PROTOCOL.length());
             try {
-                /*LocalRouter.getInstance(MaApplication.getMaApplication()).route(this, new RouterRequest
-                        .url(command).build(), new MaCallback() {
+                RouterManager.getInstance().route(this, new RouterRequest()
+                        .url(command), new RouterCallback() {
                     @Override
                     public void onResult(int resultCode, HashMap resultData) {
                         // callback to mContentWv.loadUrl();
                         String result = "";
-                        if(resultCode == MaCallback.CODE_SUCCESS && resultData!=null){
-                            result = (String) resultData.get(MaCallback.KEY_VALUE);
+                        if(resultCode == RouterCallback.CODE_SUCCESS && resultData!=null){
+                            result = (String) resultData.get(RouterCallback.KEY_VALUE);
                         } else {
-                            result = (String)resultData.get(MaCallback.KEY_ERROR_MSG);
+                            result = (String)resultData.get(RouterCallback.KEY_ERROR_MSG);
                         }
                         toastOnUIThread(resultCode + "\t" + result);
                     }
-                });*/
+                });
             } catch (Exception e) {
                 e.printStackTrace();
             }
