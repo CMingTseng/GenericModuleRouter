@@ -53,10 +53,13 @@ public class LocalRouter {
         // Local request
         Log.d(TAG, "Process:Local find action start: " + System.currentTimeMillis());
         RouterAction targetAction = findRequestAction(routerRequest);
+        HashMap<String, String> params = new HashMap<>();
+        params.putAll(routerRequest.getData());
+        routerRequest.isIdle.set(true);
         Log.d(TAG, "Process:Local find action end: " + System.currentTimeMillis());
         // Sync result, return the result immediately.
         try {
-            targetAction.invoke(context, routerRequest.getData() ,callback);
+            targetAction.invoke(context, params ,callback);
         } catch (Exception e) {
             e.printStackTrace();
             HashMap result = new HashMap();

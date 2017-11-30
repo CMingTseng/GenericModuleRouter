@@ -4,10 +4,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Set;
-import android.util.Log;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.Context;
 import android.util.Log;
 
 /**
@@ -20,7 +23,21 @@ public class RouterRequest {
     private String provider;
     private String action;
     private HashMap data;
-    private String domain;
+
+
+    AtomicBoolean isIdle = new AtomicBoolean(true);
+
+    private static final int length = 64;
+    private static AtomicInteger sIndex = new AtomicInteger(0);
+    private static final int RESET_NUM = 1000;
+    private static volatile RouterRequest[] table = new RouterRequest[length];
+
+    static {
+        for (int i = 0; i < length; i++) {
+            table[i] = new RouterRequest();
+        }
+    }
+
 
     public RouterRequest() {
         this.provider = "";
@@ -125,5 +142,37 @@ public class RouterRequest {
     public RouterRequest data(String key, Object data) {
         this.data.put(key, data);
         return this;
+    }
+
+    public static RouterRequest obtain() {
+        return obtain(0);
+    }
+
+    private static RouterRequest obtain(int retryTime) {
+        int index = sIndex.getAndIncrement();
+        if (index > RESET_NUM) {
+            sIndex.compareAndSet(index, 0);
+            if (index > RESET_NUM * 2) {
+                sIndex.set(0);
+            }
+        }
+
+        int num = index & (length - 1);
+
+        RouterRequest target = table[num];
+
+        if (target.isIdle.compareAndSet(true, false)) {
+            target.provider = "";
+            target.action = "";
+            target.data.clear();
+            return target;
+        } else {
+            if (retryTime < 5) {
+                return obtain(retryTime++);
+            } else {
+                return new RouterRequest();
+            }
+
+        }
     }
 }
