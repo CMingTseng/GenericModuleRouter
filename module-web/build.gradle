@@ -1,10 +1,16 @@
-apply plugin: 'com.android.library'
+appModuleWebDemo =   rootProject.ext.appModuleWebDemo
+if (Boolean.valueOf(appModuleWebDemo)) {
+    apply plugin: 'com.android.application'
+} else {
+    apply plugin: 'com.android.library'
+}
 
 android {
     compileSdkVersion 25
     buildToolsVersion '26.0.2'
 
     defaultConfig {
+        consumerProguardFiles 'proguard-rules.pro'
         minSdkVersion 14
         targetSdkVersion 25
         versionCode 1
@@ -17,6 +23,26 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    sourceSets{
+        main {
+            if (Boolean.valueOf(appModuleWebDemo)) {
+                manifest.srcFile 'app/AndroidManifest.xml'
+                java.srcDirs = ['src/main/java','app/java']
+                resources.srcDirs = ['src/main/resources','app/resources']
+                aidl.srcDirs = ['src/main/aidl','app/aidl']
+                renderscript.srcDirs = ['src/main/rs','app/rs']
+                res.srcDirs = ['src/main/res','app/res']
+                assets.srcDirs = ['src/main/assets','app/assets']
+                jniLibs.srcDirs = ['src/main/jniLibs','app/jniLibs']
+            } else {
+                manifest.srcFile 'src/main/AndroidManifest.xml'
+                java {
+                    //排除java/debug文件夹下的所有文件
+                    exclude '*debug'
+                }
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-
+def channel = hasProperty("channel") ? property("channel") : "test"
 android {
     compileSdkVersion 24
     buildToolsVersion '26.0.2'
@@ -10,12 +10,16 @@ android {
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
-
+        // read gradle.properties
+        buildConfigField "boolean", "channel", project.hasProperty("channel") ? project.property("channel").equals("2").toString() : "false"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
     buildTypes {
         release {
+            manifestPlaceholders = [
+                    "channel": "\"$channel\""
+            ]
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -30,8 +34,17 @@ dependencies {
     compile 'com.android.support:appcompat-v7:24.2.1'
     testCompile 'junit:junit:4.12'
     compile project(':router-core')
-    compile project(':module-music')
-    compile project(':module-pic')
-    compile project(':module-web')
+
+
+
+    if (!Boolean.valueOf(rootProject.ext.appModulePicDemo)) {
+        compile project(':module-pic')
+    }
+    if (!Boolean.valueOf(rootProject.ext.appModuleMusicDemo)) {
+        compile project(':module-music')
+    }
+    if (!Boolean.valueOf(rootProject.ext.appModuleWebDemo)) {
+        compile project(':module-web')
+    }
 
 }
