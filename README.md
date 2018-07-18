@@ -23,16 +23,57 @@
 - RouterRequest：调用Action时的请求信息
 - RouterResponse：Action调用完成之后的响应信息
 - LocalRouter：单进程本地局域路由器
+- StubIPCProvider:跨进程服务者
 
-### 1.在Application oncreate中初始化Router
+### 1.在applicationId 对应目录下建立ModuleRouterEntry
 
-        // 注册Router
-        RouterManager.getInstance().registerApplicationLogic(MainApplicationLogic.class);
-        RouterManager.getInstance().registerApplicationLogic(WebApplicationLogic.class);
-        RouterManager.getInstance().registerApplicationLogic(MusicApplicationLogic.class);
-        RouterManager.getInstance().registerApplicationLogic(PicApplicationLogic.class);
-        // 初始化Router
-        RouterManager.getInstance().init(this);
+
+```java
+public class ModuleRouterEntry {
+    public static final String MAIN_DOMAIN = "com.spinytech.maindemo";
+    public static final String MAIN_DOMAIN_MAIN_APP = "com.spinytech.maindemo.MainApplicationLogic";
+
+
+    public static final String MUSIC_DOMAIN = "com.spinytech.maindemo:music";
+    public static final String MUSIC_DOMAIN_MUSIC_APP = "com.spinytech.musicdemo.MusicApplicationLogic";
+
+
+    public static final String PIC_DOMAIN = "com.spinytech.maindemo:pic";
+    public static final String PIC_DOMAIN_PIC_APP = "com.spinytech.picdemo.PicApplicationLogic";
+
+    public static final String WEB_DOMAIN = "com.spinytech.maindemo:web";
+    public static final String WEB_DOMAIN_WEB_APP = "com.spinytech.webdemo.WebApplicationLogic";
+
+
+    public static LinkedList<Pair<String, String>> applicationLogic;
+
+    static {
+        applicationLogic = new LinkedList<>();
+        applicationLogic.add(new Pair<>(MAIN_DOMAIN, MAIN_DOMAIN_MAIN_APP));
+        applicationLogic.add(new Pair<>(MUSIC_DOMAIN, MUSIC_DOMAIN_MUSIC_APP));
+        applicationLogic.add(new Pair<>(PIC_DOMAIN, PIC_DOMAIN_PIC_APP));
+        applicationLogic.add(new Pair<>(WEB_DOMAIN, WEB_DOMAIN_WEB_APP));
+
+    }
+
+
+    /**
+     * 1.由于夸进程访问是通过 ContentProvider，其 onCreate,call 方法在
+     * application.attachBaseContext 和 onCreate 之间
+     * 而夸进程调用之前必须初始化 Router
+     * 2.每个进程 ContentProvider 会自动在应用启动的时候 onCreate，所以在这里初始化 Route ，不用集成方去调用
+     * <p>
+     * <p>
+     * 这里只需要提供列表即可
+     *
+     * @param base
+     */
+
+    public static LinkedList<Pair<String, String>> provideAllModule() {
+        return applicationLogic;
+    }
+
+```
 
 ### 2. 创建自定义ApplicationLogic
 
@@ -73,6 +114,20 @@
 
 ### 5.调用
         RouterManager.getInstance().route(context, routerRequestBuilder);
+        // 跨进程注意单独传 Domain 参数
+### 6. webdemo中有 h5调用 Router,domain 是必传参数
+
+### 7. 跨进程采用 ContentProvider.call 同步调用机制，不用 Service 这种异步来回检查，代码简介很多，而且可以实现自动初始化
+![cross process](art/CRossProcessRouter.png)
+### 8. 支持每个 module 单独打包为 apk独立开发测试
+只需要打开 gradle.properties 文件,配置具体 module 即可
+// 某个模块是否 app  0否 1是 
+appModulePicDemo = 0
+appModuleMusicDemo = 0
+appModuleWebDemo = 0
+
+
+
 ## Other
 参照ModularizationArchitecture，有兴趣的参见如下传送门
 
