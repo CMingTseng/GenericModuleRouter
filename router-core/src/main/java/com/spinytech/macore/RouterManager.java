@@ -2,9 +2,11 @@ package com.spinytech.macore;
 
 import android.content.Context;
 import android.util.Log;
+import android.util.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  *
@@ -18,21 +20,50 @@ public class RouterManager {
     private ArrayList<ApplicationLogicWrapper> mLogicList;
     private HashMap<String, ArrayList<ApplicationLogicWrapper>> mLogicClassMap = new HashMap<>();
 
+    private RouterManager() {
+    }
+
     public static RouterManager getInstance() {
         return sInstance;
     }
 
-    private RouterManager(){
-    }
-
-    public void init(Context context) {
+    public void init(Context context, List<Pair<String, String>> applicationLogic) {
         if( context == null){
             throw new RuntimeException("Router manager init with context null");
         }
         Log.d(TAG, "Application onCreate start: " + System.currentTimeMillis());
+        // 1. init local router
         LocalRouter.init(context);
+        // 2. register applogic
+        for (Pair<String, String> processLogic : applicationLogic) {
+            try {
+                Class<? extends BaseApplicationLogic> applicationLogicClass = (Class<? extends BaseApplicationLogic>) Class.forName(processLogic.second);
+                registerApplicationLogic(processLogic.first, applicationLogicClass);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        // 3. instant applogic to register provider to current process local router
         appLogicInit(context);
         Log.d(TAG, "Application onCreate end: " + System.currentTimeMillis());
+    }
+
+    public void registerApplicationLogic(String processName, Class<? extends BaseApplicationLogic> logicClass) {
+        if (null != mLogicClassMap) {
+            ArrayList<ApplicationLogicWrapper> tempList = mLogicClassMap.get(processName);
+            if (null == tempList) {
+                tempList = new ArrayList<>();
+                mLogicClassMap.put(processName, tempList);
+            }
+            for (ApplicationLogicWrapper baseApplicationLogic : tempList) {
+                if (logicClass.getName().equals(baseApplicationLogic.logicClass.getName())) {
+                    // aleady added ,so skip to continue
+                    return;
+                }
+
+            }
+            tempList.add(new ApplicationLogicWrapper(logicClass));
+        }
     }
 
     private void appLogicInit(Context context) {
@@ -57,24 +88,6 @@ public class RouterManager {
                     priorityLogicWrapper.instance.setApplication(context.getApplicationContext());
                 }
             }
-        }
-    }
-
-    public void registerApplicationLogic(String processName, Class<? extends BaseApplicationLogic> logicClass) {
-        if (null != mLogicClassMap) {
-            ArrayList<ApplicationLogicWrapper> tempList = mLogicClassMap.get(processName);
-            if (null == tempList) {
-                tempList = new ArrayList<>();
-                mLogicClassMap.put(processName, tempList);
-            }
-            if (tempList.size() > 0) {
-                for (ApplicationLogicWrapper baseApplicationLogic : tempList) {
-                    if (logicClass.getName().equals(baseApplicationLogic.logicClass.getName())) {
-                        throw new RuntimeException(logicClass.getName() + " has registered.");
-                    }
-                }
-            }
-            tempList.add(new ApplicationLogicWrapper(logicClass));
         }
     }
 

@@ -9,20 +9,14 @@ import com.spinytech.macore.ParceableAttachObject;
 import com.spinytech.macore.RouterCallback;
 import com.spinytech.macore.RouterManager;
 import com.spinytech.macore.RouterRequest;
-import  static  com.spinytech.maindemo.MyApplication.*;
+
+import static com.spinytech.maindemo.ModuleRouterEntry.MUSIC_DOMAIN;
+import static com.spinytech.maindemo.ModuleRouterEntry.PIC_DOMAIN;
+import static com.spinytech.maindemo.ModuleRouterEntry.WEB_DOMAIN;
 
 public class MainActivity extends AppCompatActivity {
 
 
-
-    private void toastOnUIThread(final String str) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(MainActivity.this, str, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -253,6 +247,15 @@ public class MainActivity extends AppCompatActivity {
                                 }
                         );
 
+            }
+        });
+    }
+
+    private void toastOnUIThread(final String str) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, str, Toast.LENGTH_SHORT).show();
             }
         });
     }

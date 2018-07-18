@@ -18,12 +18,12 @@ import java.util.HashMap;
  */
 
 public class LocalRouter {
+    public static final int MESSAGE_CALLBACK = 100;
     private static final String TAG = "LocalRouter";
     private static LocalRouter sInstance = null;
-    public static final int MESSAGE_CALLBACK = 100;
+    private final String mProcessName;
     private HashMap<String, RouterProvider> mProviders = null;
     private Context mApplication;
-    private final String mProcessName;
     private Messenger mCallbackMessenger;
     // 记录夸进程 callback
     private int uniqueId = 0;
@@ -36,9 +36,13 @@ public class LocalRouter {
                 case MESSAGE_CALLBACK:
                     int callbackId = msg.arg1;
                     WeakReference<RouterCallback> routerCallbackWeakReference = mIPCCallbacks.get(callbackId);
-                    if(routerCallbackWeakReference!=null && routerCallbackWeakReference.get()!=null){
-                        RouterCallback routerCallback = routerCallbackWeakReference.get();
-                        routerCallback.onResult(msg.arg2, (Bundle) msg.obj);
+                    if (routerCallbackWeakReference != null) {
+                        if (routerCallbackWeakReference.get() != null) {
+                            RouterCallback routerCallback = routerCallbackWeakReference.get();
+                            routerCallback.onResult(msg.arg2, (Bundle) msg.obj);
+                        }
+                        // remove callback
+                        mIPCCallbacks.remove(callbackId);
                     }
                     break;
                 default:
@@ -56,15 +60,13 @@ public class LocalRouter {
         mIPCCallbacks = new SparseArray<>();
     }
 
-    public Context getApplication(){
-        return mApplication;
-    }
     public static synchronized LocalRouter init(Context context) {
         if (sInstance == null) {
             sInstance = new LocalRouter(context);
         }
         return sInstance;
     }
+
     public static synchronized LocalRouter getInstance() {
         if (sInstance == null) {
             throw new RuntimeException("Local Router must be init first");
@@ -72,6 +74,9 @@ public class LocalRouter {
         return sInstance;
     }
 
+    public Context getApplication() {
+        return mApplication;
+    }
 
     void registerProvider(String providerName, RouterProvider provider) {
         mProviders.put(providerName, provider);
@@ -109,11 +114,15 @@ public class LocalRouter {
             // ContentProvider
             // ContentService ContentResolver 不需要观察者，这里直接跨进程过去了
             Uri targetUri = Uri.parse("content://"+routerRequest.getDomain() + ProcessUtil.IPC_AUTHORITY_SUFFIX);
-            Bundle callBackBundle = new Bundle();
-            BundleCompat.putBinder(callBackBundle,"callback",mCallbackMessenger.getBinder());
-            uniqueId++;
-            callBackBundle.putInt("callbackId",uniqueId);
-            mIPCCallbacks.put(uniqueId,new WeakReference<RouterCallback>(callback));
+            Bundle callBackBundle = null;
+            if (callback != null) {
+                // 只有需要 callback 的时候才做缓存，每个进程独立计数 int 范围2^32
+                callBackBundle = new Bundle();
+                BundleCompat.putBinder(callBackBundle, "callback", mCallbackMessenger.getBinder());
+                uniqueId++;
+                callBackBundle.putInt("callbackId", uniqueId);
+                mIPCCallbacks.put(uniqueId, new WeakReference<RouterCallback>(callback));
+            }
             // api 11
             try {
                 context.getContentResolver().call(targetUri, "ipcRouter", routerRequest.toString(), callBackBundle);
