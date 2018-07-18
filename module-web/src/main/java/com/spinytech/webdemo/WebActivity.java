@@ -38,7 +38,7 @@ public class WebActivity extends AppCompatActivity {
         if (url.indexOf(YOUR_PROTOCOL) >= 0) {
             String command = url.substring(YOUR_PROTOCOL.length());
             try {
-                RouterManager.getInstance().route(this, RouterRequest.obtain(this)
+                Bundle result = RouterManager.getInstance().route(this, RouterRequest.obtain(this)
                         .url(command), new RouterCallback() {
                     @Override
                     public void onResult(int resultCode, Bundle resultData) {
@@ -52,6 +52,10 @@ public class WebActivity extends AppCompatActivity {
                         toastOnUIThread(resultCode + "\t" + result);
                     }
                 });
+                if (result != null) {
+                    String resultString = result.getString(RouterCallback.KEY_VALUE);
+                    toastOnUIThread("sync result:" + resultString);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

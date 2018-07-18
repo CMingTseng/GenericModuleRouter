@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.main_local_sync_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                RouterManager.getInstance()
+                Bundle result = RouterManager.getInstance()
                         .route(MainActivity.this, RouterRequest.obtain(MainActivity.this).provider("main")
                                         .action("sync")
                                         .data("1", "Hello")
@@ -42,6 +42,10 @@ public class MainActivity extends AppCompatActivity {
                                         toastOnUIThread(resultCode + "\t" + result);
                                     }
                                 });
+                if (result != null) {
+                    String resultString = result.getString(RouterCallback.KEY_VALUE);
+                    toastOnUIThread("sync result:" + resultString);
+                }
 
             }
         });

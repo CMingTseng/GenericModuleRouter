@@ -16,12 +16,13 @@ import java.util.HashMap;
 public class ShutdownAction implements RouterAction {
 
     @Override
-    public void invoke(Context context, HashMap requestData, RouterCallback callback) {
+    public Bundle invoke(Context context, HashMap requestData, RouterCallback callback) {
         context.getApplicationContext().stopService(new Intent(context, MusicService.class));
         if (callback != null) {
             Bundle result = new Bundle();
             result.putString(RouterCallback.KEY_VALUE,"shutdown success");
             callback.onResult(RouterCallback.CODE_SUCCESS, result);
         }
+        return null;
     }
 }

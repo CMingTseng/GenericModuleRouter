@@ -88,7 +88,7 @@ public class LocalRouter {
      * @param routerRequest 请求
      * @param callback 回调
      */
-    void route(Context context, RouterRequest routerRequest, RouterCallback callback) {
+    Bundle route(Context context, RouterRequest routerRequest, RouterCallback callback) {
 
         Log.d(TAG, "Process:Local route start: " + System.currentTimeMillis());
         // Local request
@@ -101,7 +101,7 @@ public class LocalRouter {
             Log.d(TAG, "Process:Local find action end: " + System.currentTimeMillis());
             // Sync result, return the result immediately.
             try {
-                targetAction.invoke(context, params, callback);
+                return targetAction.invoke(context, params, callback);
             } catch (Exception e) {
                 e.printStackTrace();
                 Bundle result = new Bundle();
@@ -125,11 +125,12 @@ public class LocalRouter {
             }
             // api 11
             try {
-                context.getContentResolver().call(targetUri, "ipcRouter", routerRequest.toString(), callBackBundle);
+                return context.getContentResolver().call(targetUri, "ipcRouter", routerRequest.toString(), callBackBundle);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+        return null;
     }
 
     private RouterAction findRequestAction(RouterRequest routerRequest) {

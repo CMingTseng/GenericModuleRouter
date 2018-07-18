@@ -17,7 +17,7 @@ import java.util.HashMap;
 public class WebAction implements RouterAction {
 
     @Override
-    public void invoke(Context context, HashMap requestData, RouterCallback callback) {
+    public Bundle invoke(Context context, HashMap requestData, RouterCallback callback) {
         if (context instanceof Activity) {
             Intent i = new Intent(context, WebActivity.class);
             context.startActivity(i);
@@ -31,5 +31,6 @@ public class WebAction implements RouterAction {
             result.putString(RouterCallback.KEY_VALUE,"web success");
             callback.onResult(RouterCallback.CODE_SUCCESS, result);
         }
+        return null;
     }
 }

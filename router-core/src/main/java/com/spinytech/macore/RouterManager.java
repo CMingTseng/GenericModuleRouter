@@ -1,6 +1,7 @@
 package com.spinytech.macore;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
 
@@ -91,8 +92,8 @@ public class RouterManager {
         }
     }
 
-    public void route(Context context, RouterRequest routerRequest, RouterCallback callback) {
-        LocalRouter.getInstance().route(context, routerRequest, callback);
+    public Bundle route(Context context, RouterRequest routerRequest, RouterCallback callback) {
+        return LocalRouter.getInstance().route(context, routerRequest, callback);
     }
 
     public void registerProvider(String providerName, RouterProvider provider) {

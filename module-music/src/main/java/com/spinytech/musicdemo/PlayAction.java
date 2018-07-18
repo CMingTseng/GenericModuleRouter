@@ -16,7 +16,7 @@ import java.util.HashMap;
 public class PlayAction implements RouterAction {
 
     @Override
-    public void invoke(Context context, HashMap requestData, RouterCallback callback) {
+    public Bundle invoke(Context context, HashMap requestData, RouterCallback callback) {
         Intent intent = new Intent(context, MusicService.class);
         intent.putExtra("command", "play");
         context.startService(intent);
@@ -25,6 +25,7 @@ public class PlayAction implements RouterAction {
             result.putString(RouterCallback.KEY_VALUE,"play success");
             callback.onResult(RouterCallback.CODE_SUCCESS,result);
         }
+        return null;
     }
 
 }

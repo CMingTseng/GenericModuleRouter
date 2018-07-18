@@ -17,11 +17,12 @@ public class ErrorAction implements RouterAction {
     }
 
     @Override
-    public void invoke(Context context, HashMap requestData, RouterCallback callback) {
+    public Bundle invoke(Context context, HashMap requestData, RouterCallback callback) {
         if (callback != null) {
             Bundle result = new Bundle();
             result.putString(RouterCallback.KEY_ERROR_MSG,DEFAULT_MESSAGE);
             callback.onResult(RouterCallback.CODE_NOT_IMPLEMENT, result);
         }
+        return null;
     }
 }

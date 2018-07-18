@@ -18,7 +18,7 @@ import java.util.HashMap;
 public class AttachObjectAction implements RouterAction {
 
     @Override
-    public void invoke(Context context, HashMap requestData, RouterCallback callback) {
+    public Bundle invoke(Context context, HashMap requestData, RouterCallback callback) {
         if(requestData!= null && requestData.containsKey("textview")){
             Object textview = requestData.get("textview");
             if(textview instanceof TextView){
@@ -35,5 +35,6 @@ public class AttachObjectAction implements RouterAction {
             result.putParcelable("toast",attachObject);
             callback.onResult(RouterCallback.CODE_SUCCESS, result);
         }
+        return null;
     }
 }

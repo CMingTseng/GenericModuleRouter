@@ -117,7 +117,7 @@ public class ModuleRouterEntry {
         // 跨进程注意单独传 Domain 参数
 ### 6. webdemo中有 h5调用 Router,domain 是必传参数
 
-### 7. 跨进程采用 ContentProvider.call 同步调用机制，不用 Service 这种异步来回检查，代码简介很多，而且可以实现自动初始化
+### 7. 跨进程采用 ContentProvider.call 同步调用机制，不用 Service 这种异步来回检查，代码简洁很多，而且可以实现自动初始化
 ![cross process](art/CRossProcessRouter.png)
 ### 8. 支持每个 module 单独打包为 apk独立开发测试
 只需要打开 gradle.properties 文件,配置具体 module 即可

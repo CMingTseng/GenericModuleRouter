@@ -1,13 +1,14 @@
 package com.spinytech.macore;
 
-import java.util.HashMap;
-
 import android.content.Context;
+import android.os.Bundle;
+
+import java.util.HashMap;
 
 /**
  * Created by guofeng on 2016/11/29.
  */
 
 public interface RouterAction {
-    public void invoke(Context context, HashMap requestData, RouterCallback callback);
+    Bundle invoke(Context context, HashMap requestData, RouterCallback callback);
 }

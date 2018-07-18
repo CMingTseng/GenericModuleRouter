@@ -15,13 +15,14 @@ import java.util.HashMap;
 public class AsyncAction implements RouterAction {
 
     @Override
-    public void invoke(Context context, HashMap requestData, RouterCallback callback) {
+    public Bundle invoke(Context context, HashMap requestData, RouterCallback callback) {
 
         if (callback != null) {
             Bundle result = new Bundle();
             result.putString(RouterCallback.KEY_VALUE,"async success");
             callback.onResult(RouterCallback.CODE_SUCCESS,result );
         }
+        return null;
     }
 
 }

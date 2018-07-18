@@ -17,7 +17,7 @@ import java.util.HashMap;
 public class PicAction implements RouterAction {
 
     @Override
-    public void invoke(Context context, HashMap requestData, RouterCallback callback) {
+    public Bundle invoke(Context context, HashMap requestData, RouterCallback callback) {
         String isBigString = (String) requestData.get("is_big");
         boolean isBig = "1".equals(isBigString);
         if (context instanceof Activity) {
@@ -35,5 +35,6 @@ public class PicAction implements RouterAction {
             result.putString(RouterCallback.KEY_VALUE,"pic success");
             callback.onResult(RouterCallback.CODE_SUCCESS, result);
         }
+        return null;
     }
 }

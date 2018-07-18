@@ -15,11 +15,13 @@ import java.util.HashMap;
 public class SyncAction implements RouterAction {
 
     @Override
-    public void invoke(Context context, HashMap requestData, RouterCallback callback) {
+    public Bundle invoke(Context context, HashMap requestData, RouterCallback callback) {
+        Bundle result = new Bundle();
+        result.putString(RouterCallback.KEY_VALUE, "sync success");
         if (callback != null) {
-            Bundle result = new Bundle();
-            result.putString(RouterCallback.KEY_VALUE,"sync success");
             callback.onResult(RouterCallback.CODE_SUCCESS, result);
         }
+        // 同步返回结果
+        return result;
     }
 }

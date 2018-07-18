@@ -16,7 +16,7 @@ import java.util.HashMap;
 public class StopAction implements RouterAction {
 
     @Override
-    public void invoke(Context context, HashMap requestData, RouterCallback callback) {
+    public Bundle invoke(Context context, HashMap requestData, RouterCallback callback) {
         Intent intent = new Intent(context, MusicService.class);
         intent.putExtra("command", "stop");
         context.startService(intent);
@@ -25,5 +25,6 @@ public class StopAction implements RouterAction {
             result.putString(RouterCallback.KEY_VALUE,"stop success");
             callback.onResult(RouterCallback.CODE_SUCCESS, result);
         }
+        return null;
     }
 }
