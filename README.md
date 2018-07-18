@@ -120,6 +120,23 @@ public class ModuleRouterEntry {
 ### 7. 跨进程采用 ContentProvider.call 同步调用机制，不用 Service 这种异步来回检查，代码简洁很多，而且可以实现自动初始化
 ![cross process](art/CRossProcessRouter.png)
 ### 8. 支持每个 module 单独打包为 apk独立开发测试
+### 9.支持夸进程或者同进程，同步返回和异步返回,参见如下
+```java
+public class SyncAction implements RouterAction {
+
+    @Override
+    public Bundle invoke(Context context, HashMap requestData, RouterCallback callback) {
+        Bundle result = new Bundle();
+        result.putString(RouterCallback.KEY_VALUE, "sync success");
+        if (callback != null) {
+            // 这里可以异步返回
+            callback.onResult(RouterCallback.CODE_SUCCESS, result);
+        }
+        // 同步返回结果
+        return result;
+    }
+}
+```
 只需要打开 gradle.properties 文件,配置具体 module 即可
 // 某个模块是否 app  0否 1是 
 appModulePicDemo = 0
