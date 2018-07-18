@@ -1,12 +1,13 @@
 package com.spinytech.musicdemo;
 
-import java.util.HashMap;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 
 import com.spinytech.macore.RouterAction;
 import com.spinytech.macore.RouterCallback;
 
-import android.content.Context;
-import android.content.Intent;
+import java.util.HashMap;
 
 /**
  * Created by wanglei on 2016/12/28.
@@ -20,8 +21,8 @@ public class PlayAction implements RouterAction {
         intent.putExtra("command", "play");
         context.startService(intent);
         if (callback != null) {
-            HashMap result = new HashMap();
-            result.put(RouterCallback.KEY_VALUE,"play success");
+            Bundle result = new Bundle();
+            result.putString(RouterCallback.KEY_VALUE,"play success");
             callback.onResult(RouterCallback.CODE_SUCCESS,result);
         }
     }

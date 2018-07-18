@@ -8,7 +8,13 @@
             android:supportsRtl="true">
         <activity
                 android:name=".PicActivity"
+            android:process=":pic"
         />
+        <provider
+            android:name=".StubIPCProvider"
+            android:authorities="${applicationId}:pic.RouterIPCProvider"
+            android:exported="false"
+            android:process=":pic" />
     </application>
 
 </manifest>

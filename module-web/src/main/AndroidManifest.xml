@@ -6,7 +6,15 @@
         android:allowBackup="true"
         android:label="@string/app_name"
         android:supportsRtl="true">
-        <activity android:name=".WebActivity"/>
+        <activity
+            android:name=".WebActivity"
+            android:process=":web"
+            />
+        <provider
+            android:name=".StubIPCProvider"
+            android:authorities="${applicationId}:web.RouterIPCProvider"
+            android:exported="false"
+            android:process=":web" />
     </application>
 
 </manifest>

@@ -1,12 +1,13 @@
 package com.spinytech.musicdemo;
 
-import java.util.HashMap;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 
 import com.spinytech.macore.RouterAction;
 import com.spinytech.macore.RouterCallback;
 
-import android.content.Context;
-import android.content.Intent;
+import java.util.HashMap;
 
 /**
  * Created by wanglei on 2016/12/28.
@@ -18,8 +19,8 @@ public class ShutdownAction implements RouterAction {
     public void invoke(Context context, HashMap requestData, RouterCallback callback) {
         context.getApplicationContext().stopService(new Intent(context, MusicService.class));
         if (callback != null) {
-            HashMap result = new HashMap();
-            result.put(RouterCallback.KEY_VALUE,"shutdown success");
+            Bundle result = new Bundle();
+            result.putString(RouterCallback.KEY_VALUE,"shutdown success");
             callback.onResult(RouterCallback.CODE_SUCCESS, result);
         }
     }

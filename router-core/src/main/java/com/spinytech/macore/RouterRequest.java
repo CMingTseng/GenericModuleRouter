@@ -1,25 +1,29 @@
 package com.spinytech.macore;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
+import android.content.Context;
+import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.Context;
-import android.util.Log;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by wanglei on 2016/12/27.
+ *
+ * @author wanglei
+ * @date 2016/12/27
  */
 
 public class RouterRequest {
     private static final String TAG = "RouterRequest";
-
+    private String from;
+    private String domain;
     private String provider;
     private String action;
     private HashMap data;
@@ -38,12 +42,59 @@ public class RouterRequest {
         }
     }
 
+    public RouterRequest(String requestJsonString) {
+        try {
+            JSONObject jsonObject = new JSONObject(requestJsonString);
+            from = jsonObject.optString("from");
+            domain = jsonObject.optString("domain");
+            provider = jsonObject.optString("provider");
+            action = jsonObject.optString("action");
+            this.data = new HashMap<>();
+            try {
+                JSONObject jsonData = new JSONObject(jsonObject.optString("data"));
+                Iterator it = jsonData.keys();
+                while (it.hasNext()) {
+                    String key = String.valueOf(it.next());
+                    String value = (String) jsonData.get(key);
+                    this.data.put(key, value);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 
-    public RouterRequest() {
+    /**
+     * 只是给缓冲池初始化使用，后续都是用带 Context
+     */
+    private RouterRequest() {
+        this.from = ProcessUtil.DEFAULT_PROCESS;
+        this.domain = ProcessUtil.DEFAULT_PROCESS;
         this.provider = "";
         this.action = "";
         this.data = new HashMap<>();
     }
+
+
+    /**
+     * 后续缓存 new 从这里
+     * @param context
+     */
+    private RouterRequest(Context context) {
+        this.from = ProcessUtil.getProcessName(context);
+        this.domain = ProcessUtil.getProcessName(context);
+        this.provider = "";
+        this.action = "";
+        this.data = new HashMap<>();
+    }
+
+
+    public String getDomain() {
+        return domain;
+    }
+
 
     public String getProvider() {
         return provider;
@@ -57,6 +108,36 @@ public class RouterRequest {
         return data;
     }
 
+    private static RouterRequest obtain(Context context, int retryTime) {
+        int index = sIndex.getAndIncrement();
+        if (index > RESET_NUM) {
+            sIndex.compareAndSet(index, 0);
+            if (index > RESET_NUM * 2) {
+                sIndex.set(0);
+            }
+        }
+
+        int num = index & (length - 1);
+
+        RouterRequest target = table[num];
+
+        if (target.isIdle.compareAndSet(true, false)) {
+            target.from = ProcessUtil.getProcessName(context);
+            target.domain = ProcessUtil.getProcessName(context);
+            target.provider = "";
+            target.action = "";
+            target.data.clear();
+            return target;
+        } else {
+            if (retryTime < 5) {
+                return obtain(context, retryTime++);
+            } else {
+                return new RouterRequest(context);
+            }
+
+        }
+    }
+
     public RouterRequest url(String url) {
         int questIndex = url.indexOf('?');
         String[] urls = url.split("\\?");
@@ -65,10 +146,10 @@ public class RouterRequest {
             return this;
         }
         String[] targets = urls[0].split("/");
-        if (targets.length == 2) {
-            //this.domain = targets[0];
-            this.provider = targets[0];
-            this.action = targets[1];
+        if (targets.length == 3) {
+            this.domain = targets[0];
+            this.provider = targets[1];
+            this.action = targets[2];
         } else {
             Log.e(TAG, "The url is illegal.");
             return this;
@@ -102,12 +183,15 @@ public class RouterRequest {
         }
         return this;
     }
+
     @Override
     public String toString() {
         //Here remove Gson to save about 10ms.
         //String result = new Gson().toJson(this);
         JSONObject jsonObject = new JSONObject();
         try {
+            jsonObject.put("from", from);
+            jsonObject.put("domain", domain);
             jsonObject.put("provider", provider);
             jsonObject.put("action", action);
 
@@ -144,35 +228,12 @@ public class RouterRequest {
         return this;
     }
 
-    public static RouterRequest obtain() {
-        return obtain(0);
+    public RouterRequest domain(String domain) {
+        this.domain = domain;
+        return this;
     }
 
-    private static RouterRequest obtain(int retryTime) {
-        int index = sIndex.getAndIncrement();
-        if (index > RESET_NUM) {
-            sIndex.compareAndSet(index, 0);
-            if (index > RESET_NUM * 2) {
-                sIndex.set(0);
-            }
-        }
-
-        int num = index & (length - 1);
-
-        RouterRequest target = table[num];
-
-        if (target.isIdle.compareAndSet(true, false)) {
-            target.provider = "";
-            target.action = "";
-            target.data.clear();
-            return target;
-        } else {
-            if (retryTime < 5) {
-                return obtain(retryTime++);
-            } else {
-                return new RouterRequest();
-            }
-
-        }
+    public static RouterRequest obtain(Context context) {
+        return obtain(context, 0);
     }
 }

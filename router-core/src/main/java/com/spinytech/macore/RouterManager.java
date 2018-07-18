@@ -1,18 +1,22 @@
 package com.spinytech.macore;
 
-import java.util.ArrayList;
-
 import android.content.Context;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 /**
- * Created by wanglei on 2016/11/25.
+ *
+ * @author wanglei
+ * @date 2016/11/25
  */
 
 public class RouterManager {
-    private static final String TAG = "MaApplication";
+    private static final String TAG = "RouterManager";
     private static RouterManager sInstance = new RouterManager();
-    private ArrayList<ApplicationLogicWrapper> mLogicClassList = new ArrayList<>();
+    private ArrayList<ApplicationLogicWrapper> mLogicList;
+    private HashMap<String, ArrayList<ApplicationLogicWrapper>> mLogicClassMap = new HashMap<>();
 
     public static RouterManager getInstance() {
         return sInstance;
@@ -25,11 +29,6 @@ public class RouterManager {
         if( context == null){
             throw new RuntimeException("Router manager init with context null");
         }
-        context = context.getApplicationContext();
-        // double check
-        if( context == null){
-            throw new RuntimeException("Router manager init with applciation context null");
-        }
         Log.d(TAG, "Application onCreate start: " + System.currentTimeMillis());
         LocalRouter.init(context);
         appLogicInit(context);
@@ -37,10 +36,13 @@ public class RouterManager {
     }
 
     private void appLogicInit(Context context) {
-        if( mLogicClassList == null || mLogicClassList.size() < 1){
+        if (null != mLogicClassMap) {
+            mLogicList = mLogicClassMap.get(ProcessUtil.getProcessName(context));
+        }
+        if( mLogicList == null || mLogicList.size() < 1){
             return ;
         }
-        for (ApplicationLogicWrapper priorityLogicWrapper : mLogicClassList) {
+        for (ApplicationLogicWrapper priorityLogicWrapper : mLogicList) {
             // construct
             if (null != priorityLogicWrapper) {
                 try {
@@ -52,23 +54,28 @@ public class RouterManager {
                 }
                 if (null != priorityLogicWrapper && null != priorityLogicWrapper.instance) {
                     priorityLogicWrapper.instance.onCreate(context);
+                    priorityLogicWrapper.instance.setApplication(context.getApplicationContext());
                 }
             }
         }
     }
 
-    public boolean registerApplicationLogic(Class<? extends BaseApplicationLogic> logicClass) {
-        boolean result = false;
-        if (null != mLogicClassList) {
-            for (ApplicationLogicWrapper applicationLogicWrapper : mLogicClassList) {
-                if(applicationLogicWrapper.logicClass.equals(logicClass)){
-                    throw new RuntimeException(logicClass.getName() + " has registered.");
+    public void registerApplicationLogic(String processName, Class<? extends BaseApplicationLogic> logicClass) {
+        if (null != mLogicClassMap) {
+            ArrayList<ApplicationLogicWrapper> tempList = mLogicClassMap.get(processName);
+            if (null == tempList) {
+                tempList = new ArrayList<>();
+                mLogicClassMap.put(processName, tempList);
+            }
+            if (tempList.size() > 0) {
+                for (ApplicationLogicWrapper baseApplicationLogic : tempList) {
+                    if (logicClass.getName().equals(baseApplicationLogic.logicClass.getName())) {
+                        throw new RuntimeException(logicClass.getName() + " has registered.");
+                    }
                 }
             }
-        mLogicClassList.add(new ApplicationLogicWrapper(logicClass));
-        result = true ;
+            tempList.add(new ApplicationLogicWrapper(logicClass));
         }
-        return result;
     }
 
     public void route(Context context, RouterRequest routerRequest, RouterCallback callback) {

@@ -1,13 +1,14 @@
 package com.spinytech.webdemo;
 
-import java.util.HashMap;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 
 import com.spinytech.macore.RouterAction;
 import com.spinytech.macore.RouterCallback;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
+import java.util.HashMap;
 
 /**
  * Created by wanglei on 2017/1/4.
@@ -26,8 +27,8 @@ public class WebAction implements RouterAction {
             context.startActivity(i);
         }
         if (callback != null) {
-            HashMap result = new HashMap();
-            result.put(RouterCallback.KEY_VALUE,"web success");
+            Bundle result = new Bundle();
+            result.putString(RouterCallback.KEY_VALUE,"web success");
             callback.onResult(RouterCallback.CODE_SUCCESS, result);
         }
     }

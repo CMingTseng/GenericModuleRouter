@@ -1,6 +1,6 @@
 package com.spinytech.macore;
 
-import java.util.HashMap;
+import android.os.Bundle;
 
 /**
  * Created by guofeng on 2017/5/11.
@@ -16,5 +16,5 @@ public interface RouterCallback {
 
     public static final String KEY_ERROR_MSG="errorMsg";
     public static final String KEY_VALUE="value";
-    public void onResult(int resultCode, HashMap resultData);
+    public void onResult(int resultCode, Bundle resultData);
 }

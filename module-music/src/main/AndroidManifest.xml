@@ -5,8 +5,14 @@
                  android:supportsRtl="true">
 
         <service android:name=".MusicService"
+            android:process=":music"
         />
 
+        <provider
+            android:name=".StubIPCProvider"
+            android:authorities="${applicationId}:music.RouterIPCProvider"
+            android:exported="false"
+            android:process=":music" />
     </application>
 
 </manifest>

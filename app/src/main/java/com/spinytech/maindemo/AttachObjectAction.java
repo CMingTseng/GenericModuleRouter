@@ -1,13 +1,15 @@
 package com.spinytech.maindemo;
 
-import java.util.HashMap;
+import android.content.Context;
+import android.os.Bundle;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.spinytech.macore.ParceableAttachObject;
 import com.spinytech.macore.RouterAction;
 import com.spinytech.macore.RouterCallback;
 
-import android.content.Context;
-import android.widget.TextView;
-import android.widget.Toast;
+import java.util.HashMap;
 
 /**
  * Created by wanglei on 2017/2/15.
@@ -24,10 +26,13 @@ public class AttachObjectAction implements RouterAction {
             }
         }
         if (callback != null) {
-            HashMap result = new HashMap();
-            result.put(RouterCallback.KEY_VALUE,"attach object success");
+            Bundle result = new Bundle();
+            result.putString(RouterCallback.KEY_VALUE,"attach object success");
             Toast toast = Toast.makeText(context, "toast from attach", Toast.LENGTH_SHORT);
-            result.put("toast",toast);
+
+            ParceableAttachObject attachObject = new ParceableAttachObject();
+            attachObject.obj = toast;
+            result.putParcelable("toast",attachObject);
             callback.onResult(RouterCallback.CODE_SUCCESS, result);
         }
     }

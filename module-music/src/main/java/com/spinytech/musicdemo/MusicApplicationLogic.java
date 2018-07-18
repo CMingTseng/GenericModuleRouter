@@ -1,9 +1,9 @@
 package com.spinytech.musicdemo;
 
+import android.content.Context;
+
 import com.spinytech.macore.BaseApplicationLogic;
 import com.spinytech.macore.RouterManager;
-
-import android.content.Context;
 
 /**
  * Created by wanglei on 2016/11/30.

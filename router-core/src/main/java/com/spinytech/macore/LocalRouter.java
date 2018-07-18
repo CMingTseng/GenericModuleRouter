@@ -1,10 +1,17 @@
 package com.spinytech.macore;
 
-import java.util.HashMap;
-
-import android.app.Application;
 import android.content.Context;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.os.Messenger;
+import android.support.v4.app.BundleCompat;
 import android.util.Log;
+import android.util.SparseArray;
+
+import java.lang.ref.WeakReference;
+import java.util.HashMap;
 
 /**
  * The Local Router
@@ -13,12 +20,40 @@ import android.util.Log;
 public class LocalRouter {
     private static final String TAG = "LocalRouter";
     private static LocalRouter sInstance = null;
+    public static final int MESSAGE_CALLBACK = 100;
     private HashMap<String, RouterProvider> mProviders = null;
     private Context mApplication;
+    private final String mProcessName;
+    private Messenger mCallbackMessenger;
+    // 记录夸进程 callback
+    private int uniqueId = 0;
+    private SparseArray<WeakReference<RouterCallback>> mIPCCallbacks;
+    private Handler mCallbackHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case MESSAGE_CALLBACK:
+                    int callbackId = msg.arg1;
+                    WeakReference<RouterCallback> routerCallbackWeakReference = mIPCCallbacks.get(callbackId);
+                    if(routerCallbackWeakReference!=null && routerCallbackWeakReference.get()!=null){
+                        RouterCallback routerCallback = routerCallbackWeakReference.get();
+                        routerCallback.onResult(msg.arg2, (Bundle) msg.obj);
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+        }
+    };
 
     private LocalRouter(Context context) {
         mApplication = context;
+        mProcessName = ProcessUtil.getProcessName(context);
         mProviders = new HashMap<>();
+        mCallbackMessenger = new Messenger(mCallbackHandler);
+        mIPCCallbacks = new SparseArray<>();
     }
 
     public Context getApplication(){
@@ -49,24 +84,43 @@ public class LocalRouter {
      * @param callback 回调
      */
     void route(Context context, RouterRequest routerRequest, RouterCallback callback) {
+
         Log.d(TAG, "Process:Local route start: " + System.currentTimeMillis());
         // Local request
-        Log.d(TAG, "Process:Local find action start: " + System.currentTimeMillis());
-        RouterAction targetAction = findRequestAction(routerRequest);
-        HashMap<String, String> params = new HashMap<>();
-        params.putAll(routerRequest.getData());
-        routerRequest.isIdle.set(true);
-        Log.d(TAG, "Process:Local find action end: " + System.currentTimeMillis());
-        // Sync result, return the result immediately.
-        try {
-            targetAction.invoke(context, params ,callback);
-        } catch (Exception e) {
-            e.printStackTrace();
-            HashMap result = new HashMap();
-            result.put(RouterCallback.KEY_ERROR_MSG,e.getMessage());
-            callback.onResult(RouterCallback.CODE_ERROR, result);
+        if (mProcessName.equals(routerRequest.getDomain())) {
+            Log.d(TAG, "Process:Local find action start: " + System.currentTimeMillis());
+            RouterAction targetAction = findRequestAction(routerRequest);
+            HashMap<String, String> params = new HashMap<>();
+            params.putAll(routerRequest.getData());
+            routerRequest.isIdle.set(true);
+            Log.d(TAG, "Process:Local find action end: " + System.currentTimeMillis());
+            // Sync result, return the result immediately.
+            try {
+                targetAction.invoke(context, params, callback);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Bundle result = new Bundle();
+                result.putString(RouterCallback.KEY_ERROR_MSG, e.getMessage());
+                callback.onResult(RouterCallback.CODE_ERROR, result);
+            }
+            Log.d(TAG, "Process:Local route end: " + System.currentTimeMillis());
+        } else {
+            // IPC
+            // ContentProvider
+            // ContentService ContentResolver 不需要观察者，这里直接跨进程过去了
+            Uri targetUri = Uri.parse("content://"+routerRequest.getDomain() + ProcessUtil.IPC_AUTHORITY_SUFFIX);
+            Bundle callBackBundle = new Bundle();
+            BundleCompat.putBinder(callBackBundle,"callback",mCallbackMessenger.getBinder());
+            uniqueId++;
+            callBackBundle.putInt("callbackId",uniqueId);
+            mIPCCallbacks.put(uniqueId,new WeakReference<RouterCallback>(callback));
+            // api 11
+            try {
+                context.getContentResolver().call(targetUri, "ipcRouter", routerRequest.toString(), callBackBundle);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        Log.d(TAG, "Process:Local route end: " + System.currentTimeMillis());
     }
 
     private RouterAction findRequestAction(RouterRequest routerRequest) {

@@ -1,8 +1,9 @@
 package com.spinytech.macore;
 
-import java.util.HashMap;
-
 import android.content.Context;
+import android.os.Bundle;
+
+import java.util.HashMap;
 
 /**
  * Created by wanglei on 2016/12/28.
@@ -18,8 +19,8 @@ public class ErrorAction implements RouterAction {
     @Override
     public void invoke(Context context, HashMap requestData, RouterCallback callback) {
         if (callback != null) {
-            HashMap result = new HashMap();
-            result.put(RouterCallback.KEY_ERROR_MSG,DEFAULT_MESSAGE);
+            Bundle result = new Bundle();
+            result.putString(RouterCallback.KEY_ERROR_MSG,DEFAULT_MESSAGE);
             callback.onResult(RouterCallback.CODE_NOT_IMPLEMENT, result);
         }
     }
